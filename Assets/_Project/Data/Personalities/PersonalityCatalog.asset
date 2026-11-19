@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56c4684381634b8ca9619a9e1d1fa699, type: 3}
+  m_Name: PersonalityCatalog
+  m_EditorClassIdentifier:
+  profiles:
+  - {fileID: 11400000, guid: 83e0aa75d743452d85c1ccc214e87d0b, type: 2}
+  - {fileID: 11400000, guid: afd0780fc76c45668efb970d5243640f, type: 2}
+  - {fileID: 11400000, guid: 4bbf70ff466f4b65a0a3043e79c1416a, type: 2}
+  - {fileID: 11400000, guid: a1983ee5307b4680b4046ae24a4d489a, type: 2}
+  - {fileID: 11400000, guid: be5ebeae71a44e3bb9b79791c2a5fab4, type: 2}
+  - {fileID: 11400000, guid: f864b1e736604c43a4813ae3b2818f11, type: 2}
+  - {fileID: 11400000, guid: 571746dec10347b39d14c55cb9595032, type: 2}
+  - {fileID: 11400000, guid: 09d584ef7d244044bebf11aa0a90a929, type: 2}
+  - {fileID: 11400000, guid: 3b68bcbdb56548d2a39c59ed2ef11557, type: 2}
+  - {fileID: 11400000, guid: 3d395514e7e24a519efc24f522f23143, type: 2}
