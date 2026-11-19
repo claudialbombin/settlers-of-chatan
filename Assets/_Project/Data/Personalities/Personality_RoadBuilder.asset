@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6aea2b6945de449f9d246b19687dda85, type: 3}
+  m_Name: Personality_RoadBuilder
+  m_EditorClassIdentifier:
+  id: 3
+  displayName: "El Caminante"
+  shortDescription: "Obsesionado con la carretera m\xE1s larga. Paga lo que sea por madera y ladrillo."
+  portrait: {fileID: 0}
+  promptFile: {fileID: 4900000, guid: 4d17587310fc40b0baf0440ebd5e87d1, type: 3}
+  aggression: 0.5
+  greed: 0.4
+  cooperation: 0.5
+  grudge: 0.3
+  bluffing: 0.1
+  riskTolerance: 0.6
+  randomness: 0.1
+  roadWeight: 2.2
+  settlementWeight: 1.3
+  cityWeight: 1
+  devCardWeight: 1
+  portWeight: 1
+  woodPreference: 1.5
+  brickPreference: 1.5
+  woolPreference: 1
+  grainPreference: 1
+  orePreference: 1
+  maxNegotiationRounds: 3
+  chatTemperature: 0.8

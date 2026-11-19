@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6aea2b6945de449f9d246b19687dda85, type: 3}
+  m_Name: Personality_Industrialist
+  m_EditorClassIdentifier:
+  id: 4
+  displayName: "La Ingeniera"
+  shortDescription: "Convierte todo en ciudades. Valora mucho el mineral y el trigo y casi nada la madera."
+  portrait: {fileID: 0}
+  promptFile: {fileID: 4900000, guid: 05035fd2c4054f88ac2cc6f4522df693, type: 3}
+  aggression: 0.3
+  greed: 0.5
+  cooperation: 0.5
+  grudge: 0.3
+  bluffing: 0.1
+  riskTolerance: 0.4
+  randomness: 0.05
+  roadWeight: 0.6
+  settlementWeight: 1
+  cityWeight: 2.2
+  devCardWeight: 1
+  portWeight: 1
+  woodPreference: 0.8
+  brickPreference: 1
+  woolPreference: 1
+  grainPreference: 1.5
+  orePreference: 1.6
+  maxNegotiationRounds: 3
+  chatTemperature: 0.6

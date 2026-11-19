@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6aea2b6945de449f9d246b19687dda85, type: 3}
+  m_Name: Personality_Aggressive
+  m_EditorClassIdentifier:
+  id: 0
+  displayName: "La Conquistadora"
+  shortDescription: "Va a por el l\xEDder sin piedad. Casi nunca negocia y, si lo hace, es para hacer da\xF1o."
+  portrait: {fileID: 0}
+  promptFile: {fileID: 4900000, guid: b467fe8ff08645068742126b0518e684, type: 3}
+  aggression: 0.9
+  greed: 0.5
+  cooperation: 0.2
+  grudge: 0.5
+  bluffing: 0.2
+  riskTolerance: 0.8
+  randomness: 0.1
+  roadWeight: 1.3
+  settlementWeight: 1.2
+  cityWeight: 1
+  devCardWeight: 1
+  portWeight: 1
+  woodPreference: 1
+  brickPreference: 1
+  woolPreference: 1
+  grainPreference: 1
+  orePreference: 1
+  maxNegotiationRounds: 2
+  chatTemperature: 0.8
