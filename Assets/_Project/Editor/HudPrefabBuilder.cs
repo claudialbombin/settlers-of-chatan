@@ -18,13 +18,14 @@ namespace Chatan.EditorTools
     /// reproducible and every Inspector reference is wired without dragging by hand.
     /// </summary>
     /// <remarks>
-    /// Menu <c>Chatan → UI</c>. Run "Build HUD Prefabs" after changing this layout, then
+    /// Menu <c>Chatan → UI</c>. Run "Build HUD Prefabs" after changing this layout (it also
+    /// builds the bot info card, see <see cref="PlayerInfoCardBuilder"/>), then
     /// "Set Up HUD Sandbox". Both can be run again: they overwrite the prefabs and do not
     /// duplicate objects in the scene. Layout is in pixels of a 1920×1080 reference screen.
     /// </remarks>
     public static class HudPrefabBuilder
     {
-        private const string PrefabFolder = "Assets/_Project/Prefabs/UI";
+        internal const string PrefabFolder = "Assets/_Project/Prefabs/UI";
         private const string IconFolder = "Assets/_Project/Art/UI/Icons";
         private const string SceneFolder = "Assets/_Project/Scenes";
         private const string SlotPrefabPath = PrefabFolder + "/ResourceSlot.prefab";
@@ -32,9 +33,9 @@ namespace Chatan.EditorTools
         private const string SandboxScenePath = SceneFolder + "/Sandbox_Claudia.unity";
 
         private static readonly Vector2 ReferenceResolution = new Vector2(1920f, 1080f);
-        private static readonly Color PanelColor = new Color(0f, 0f, 0f, 0.55f);
+        internal static readonly Color PanelColor = new Color(0f, 0f, 0f, 0.55f);
         private static readonly Color ButtonColor = new Color(0.95f, 0.85f, 0.55f);
-        private static readonly Color DarkText = new Color(0.12f, 0.12f, 0.12f);
+        internal static readonly Color DarkText = new Color(0.12f, 0.12f, 0.12f);
 
         private static Scene _buildScene;
 
@@ -46,16 +47,37 @@ namespace Chatan.EditorTools
                 return;
             }
 
-            EnsureFolder(PrefabFolder);
             ConfigureIcons();
-
-            // Build in a hidden preview scene so the scene open in the editor is not
-            // touched (and not marked as modified).
-            _buildScene = EditorSceneManager.NewPreviewScene();
-            try
+            RunInBuildScene(() =>
             {
                 GameObject slotPrefab = BuildSlotPrefab();
                 BuildHudPrefab(slotPrefab);
+                PlayerInfoCardBuilder.BuildCardPrefab();
+            });
+            Debug.Log($"[HUD] Prefabs saved in {PrefabFolder}.");
+        }
+
+        [MenuItem("Chatan/UI/Build Player Info Card Prefab")]
+        public static void BuildInfoCardPrefab()
+        {
+            if (!TmpIsReady())
+            {
+                return;
+            }
+
+            RunInBuildScene(PlayerInfoCardBuilder.BuildCardPrefab);
+            Debug.Log($"[HUD] Player info card saved in {PrefabFolder}.");
+        }
+
+        // Builds in a hidden preview scene so the scene open in the editor is not touched
+        // (and not marked as modified).
+        private static void RunInBuildScene(System.Action build)
+        {
+            EnsureFolder(PrefabFolder);
+            _buildScene = EditorSceneManager.NewPreviewScene();
+            try
+            {
+                build();
             }
             finally
             {
@@ -64,7 +86,6 @@ namespace Chatan.EditorTools
             }
 
             AssetDatabase.SaveAssets();
-            Debug.Log($"[HUD] Prefabs saved in {PrefabFolder}.");
         }
 
         [MenuItem("Chatan/UI/Set Up HUD Sandbox")]
@@ -76,6 +97,15 @@ namespace Chatan.EditorTools
                 BuildPrefabs();
                 hudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(HudPrefabPath);
                 if (hudPrefab == null)
+                {
+                    return;
+                }
+            }
+            else if (!PlayerInfoCardBuilder.CardPrefabExists)
+            {
+                // Only the card is missing: do not rebuild the HUD, which scenes already use.
+                BuildInfoCardPrefab();
+                if (!PlayerInfoCardBuilder.CardPrefabExists)
                 {
                     return;
                 }
@@ -100,10 +130,15 @@ namespace Chatan.EditorTools
                 Stretch((RectTransform)hud.transform);
             }
 
-            if (Object.FindAnyObjectByType<HudSandboxDriver>() == null)
+            PlayerInfoPanel infoPanel = PlayerInfoCardBuilder.EnsurePanel(canvas);
+
+            var driver = Object.FindAnyObjectByType<HudSandboxDriver>();
+            if (driver == null)
             {
-                new GameObject("SandboxDriver", typeof(HudSandboxDriver));
+                driver = new GameObject("SandboxDriver").AddComponent<HudSandboxDriver>();
             }
+
+            PlayerInfoCardBuilder.WireDriver(driver, infoPanel);
 
             EditorSceneManager.SaveScene(scene, SandboxScenePath);
             Debug.Log($"[HUD] Sandbox ready: {SandboxScenePath}. Press Play.");
@@ -330,7 +365,7 @@ namespace Chatan.EditorTools
 
         // ---------------------------------------------------------------- helpers
 
-        private static bool TmpIsReady()
+        internal static bool TmpIsReady()
         {
             // TMP_Settings throws if its asset does not exist yet, so look for the asset first.
             if (Resources.Load<TMP_Settings>("TMP Settings") != null && TMP_Settings.defaultFontAsset != null)
@@ -375,7 +410,7 @@ namespace Chatan.EditorTools
 
         private static string IconPath(ResourceType type) => $"{IconFolder}/{type.ToString().ToLowerInvariant()}.png";
 
-        private static GameObject NewUi(string name, Transform parent)
+        internal static GameObject NewUi(string name, Transform parent)
         {
             var go = new GameObject(name, typeof(RectTransform));
             go.layer = LayerMask.NameToLayer("UI");
@@ -391,7 +426,7 @@ namespace Chatan.EditorTools
             return go;
         }
 
-        private static TMP_Text NewText(string name, Transform parent, string text, float size, Color color, FontStyles style)
+        internal static TMP_Text NewText(string name, Transform parent, string text, float size, Color color, FontStyles style)
         {
             GameObject go = NewUi(name, parent);
             var tmp = go.AddComponent<TextMeshProUGUI>();
@@ -420,7 +455,7 @@ namespace Chatan.EditorTools
 
         // Anchors and pivot at the same point, so the block stays glued to that corner
         // whatever the screen size.
-        private static void SetRect(GameObject go, Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)
+        internal static void SetRect(GameObject go, Vector2 anchor, Vector2 pivot, Vector2 position, Vector2 size)
         {
             var rect = (RectTransform)go.transform;
             rect.anchorMin = anchor;
@@ -430,7 +465,7 @@ namespace Chatan.EditorTools
             rect.sizeDelta = size;
         }
 
-        private static void Stretch(RectTransform rect)
+        internal static void Stretch(RectTransform rect)
         {
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
@@ -439,7 +474,7 @@ namespace Chatan.EditorTools
             rect.sizeDelta = Vector2.zero;
         }
 
-        private static void EnsureFolder(string path)
+        internal static void EnsureFolder(string path)
         {
             if (AssetDatabase.IsValidFolder(path))
             {

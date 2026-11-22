@@ -3,6 +3,8 @@
     "rootNamespace": "Chatan.Tests",
     "references": [
         "Chatan.Runtime",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
