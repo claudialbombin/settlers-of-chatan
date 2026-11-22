@@ -35,10 +35,34 @@ namespace Chatan.Tests
         }
 
         [Test]
+        public void SetPlacementMode_PassesTheMode()
+        {
+            PlacementMode received = PlacementMode.None;
+            UIEvents.PlacementModeChanged += mode => received = mode;
+
+            UIEvents.SetPlacementMode(PlacementMode.City);
+
+            Assert.AreEqual(PlacementMode.City, received);
+        }
+
+        [Test]
+        public void RequestBuyDevCard_NotifiesSubscribers()
+        {
+            int calls = 0;
+            UIEvents.BuyDevCardRequested += () => calls++;
+
+            UIEvents.RequestBuyDevCard();
+
+            Assert.AreEqual(1, calls);
+        }
+
+        [Test]
         public void Requests_WithoutSubscribers_DoNotThrow()
         {
             Assert.DoesNotThrow(UIEvents.RequestRollDice);
             Assert.DoesNotThrow(UIEvents.RequestEndTurn);
+            Assert.DoesNotThrow(UIEvents.RequestBuyDevCard);
+            Assert.DoesNotThrow(() => UIEvents.SetPlacementMode(PlacementMode.Road));
         }
 
         [Test]
@@ -47,10 +71,14 @@ namespace Chatan.Tests
             int calls = 0;
             UIEvents.RollDiceRequested += () => calls++;
             UIEvents.EndTurnRequested += () => calls++;
+            UIEvents.PlacementModeChanged += _ => calls++;
+            UIEvents.BuyDevCardRequested += () => calls++;
 
             UIEvents.ClearAll();
             UIEvents.RequestRollDice();
             UIEvents.RequestEndTurn();
+            UIEvents.SetPlacementMode(PlacementMode.Road);
+            UIEvents.RequestBuyDevCard();
 
             Assert.AreEqual(0, calls);
         }

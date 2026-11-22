@@ -30,11 +30,11 @@ namespace Chatan.EditorTools
         private const string SceneFolder = "Assets/_Project/Scenes";
         private const string SlotPrefabPath = PrefabFolder + "/ResourceSlot.prefab";
         private const string HudPrefabPath = PrefabFolder + "/HUD.prefab";
-        private const string SandboxScenePath = SceneFolder + "/Sandbox_Claudia.unity";
+        internal const string SandboxScenePath = SceneFolder + "/Sandbox_Claudia.unity";
 
         private static readonly Vector2 ReferenceResolution = new Vector2(1920f, 1080f);
         internal static readonly Color PanelColor = new Color(0f, 0f, 0f, 0.55f);
-        private static readonly Color ButtonColor = new Color(0.95f, 0.85f, 0.55f);
+        internal static readonly Color ButtonColor = new Color(0.95f, 0.85f, 0.55f);
         internal static readonly Color DarkText = new Color(0.12f, 0.12f, 0.12f);
 
         private static Scene _buildScene;
@@ -71,7 +71,7 @@ namespace Chatan.EditorTools
 
         // Builds in a hidden preview scene so the scene open in the editor is not touched
         // (and not marked as modified).
-        private static void RunInBuildScene(System.Action build)
+        internal static void RunInBuildScene(System.Action build)
         {
             EnsureFolder(PrefabFolder);
             _buildScene = EditorSceneManager.NewPreviewScene();
@@ -320,7 +320,7 @@ namespace Chatan.EditorTools
 
         // ---------------------------------------------------------------- scene
 
-        private static Canvas FindOrCreateCanvas()
+        internal static Canvas FindOrCreateCanvas()
         {
             var canvas = Object.FindAnyObjectByType<Canvas>();
             if (canvas != null)
@@ -343,7 +343,7 @@ namespace Chatan.EditorTools
 
         // The project uses the new Input System only: the old StandaloneInputModule
         // would leave the buttons dead.
-        private static void EnsureEventSystem()
+        internal static void EnsureEventSystem()
         {
             var eventSystem = Object.FindAnyObjectByType<EventSystem>();
             if (eventSystem == null)
@@ -440,7 +440,7 @@ namespace Chatan.EditorTools
             return tmp;
         }
 
-        private static Button NewButton(string name, Transform parent, string label)
+        internal static Button NewButton(string name, Transform parent, string label)
         {
             GameObject go = NewUi(name, parent);
             var image = go.AddComponent<Image>();
