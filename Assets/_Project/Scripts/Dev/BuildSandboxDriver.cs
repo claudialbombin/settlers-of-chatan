@@ -8,6 +8,7 @@ using Chatan.Players;
 using Chatan.Rules;
 using Chatan.UI;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Chatan.Dev
 {
@@ -25,6 +26,10 @@ namespace Chatan.Dev
     /// Each roll gives the human two random cards. A 7 starts the discard (if they hold
     /// more than 7 cards) and then the robber. Bot turns only wait <see cref="botTurnSeconds"/>.
     /// Pick a <see cref="scenario"/> to start straight in the discard, robber or setup phase.
+    /// </para>
+    /// <para>
+    /// With a catalog and an info panel it also keeps a <see cref="RelationshipBook"/>, so
+    /// robbing a bot lowers its affinity bar. R and T fake a robbery or a trade with Bot Azul.
     /// </para>
     /// </remarks>
     public class BuildSandboxDriver : MonoBehaviour
@@ -62,6 +67,7 @@ namespace Chatan.Dev
         private readonly System.Random _rng = new System.Random();
         private readonly CancellationTokenSource _cts = new CancellationTokenSource();
         private FakeRulesQuery _rules;
+        private RelationshipBook _relationships;
         private GameState _state;
 
         private async void Start()
@@ -84,7 +90,13 @@ namespace Chatan.Dev
             {
                 int seed = Environment.TickCount;
                 int[] botIds = _state.Players.Where(p => !p.IsHuman).Select(p => p.Id).ToArray();
-                infoPanel.SetPersonalities(new BotPersonalityRegistry(PersonalityAssigner.Assign(botIds, catalog.Profiles, seed), seed));
+                var registry = new BotPersonalityRegistry(PersonalityAssigner.Assign(botIds, catalog.Profiles, seed), seed);
+                infoPanel.SetPersonalities(registry);
+
+                _relationships = new RelationshipBook(registry);
+                _relationships.Subscribe();
+                infoPanel.BindRelationships(_relationships);
+                Debug.Log("[Sandbox] Keys: R = you rob Bot Azul, T = you trade with Bot Azul.", this);
             }
 
             Debug.Log($"[Sandbox] Build sandbox started in scenario {scenario}.", this);
@@ -109,8 +121,41 @@ namespace Chatan.Dev
             }
         }
 
+        // Test keys for the relationship memory, the real triggers come from the robber and the chat.
+        private void Update()
+        {
+            Keyboard keyboard = Keyboard.current;
+            if (_relationships == null || keyboard == null)
+            {
+                return;
+            }
+
+            if (keyboard.rKey.wasPressedThisFrame)
+            {
+                GameEvents.RaisePlayerRobbed(FakeGameStateFactory.HumanId, 1);
+                LogAffinity(1);
+            }
+            else if (keyboard.tKey.wasPressedThisFrame)
+            {
+                _relationships.OnTradeCompleted(FakeGameStateFactory.HumanId, 1);
+                LogAffinity(1);
+            }
+        }
+
+        private void LogAffinity(int botId)
+        {
+            RelationshipMemory memory = _relationships.For(botId);
+            Debug.Log($"[Sandbox] Bot {botId} about you: {memory.Get(FakeGameStateFactory.HumanId):0.00}, {memory.DescribeFor(FakeGameStateFactory.HumanId)}", this);
+        }
+
         private void OnDestroy()
         {
+            _relationships?.Unsubscribe();
+            if (infoPanel != null)
+            {
+                infoPanel.BindRelationships(null);
+            }
+
             _cts.Cancel();
             _cts.Dispose();
         }
@@ -206,6 +251,11 @@ namespace Chatan.Dev
                 case MoveRobberAction robber:
                     _rules.MoveRobber(robber.TileId);
                     Steal(me, robber.VictimPlayerId);
+                    if (robber.VictimPlayerId != MoveRobberAction.NoVictim && _relationships != null)
+                    {
+                        LogAffinity(robber.VictimPlayerId);
+                    }
+
                     _state.Phase = GamePhase.Main;
                     break;
             }
