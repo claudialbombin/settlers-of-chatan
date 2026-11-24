@@ -25,6 +25,8 @@ namespace Chatan.UI
 
         private readonly Dictionary<int, PlayerInfoCard> _cards = new Dictionary<int, PlayerInfoCard>();
         private BotPersonalityRegistry _personalities;
+        private RelationshipBook _relationships;
+        private readonly Dictionary<int, Action<int, float>> _affinityHandlers = new Dictionary<int, Action<int, float>>();
 
         /// <summary>Raised with the player id when any bot card is clicked. The chat panel listens to it.</summary>
         public event Action<int> BotCardClicked;
@@ -34,6 +36,35 @@ namespace Chatan.UI
 
         /// <summary>Gives the panel the personalities of the bots (only shown in debug mode).</summary>
         public void SetPersonalities(BotPersonalityRegistry registry) => _personalities = registry;
+
+        /// <summary>
+        /// Makes each card's affinity bar follow what that bot feels about the human.
+        /// Pass null to stop. Cards created later start at the current value.
+        /// </summary>
+        public void BindRelationships(RelationshipBook book)
+        {
+            UnbindRelationships();
+            _relationships = book;
+            if (book == null)
+            {
+                return;
+            }
+
+            foreach (int botId in book.BotIds)
+            {
+                int id = botId;
+                Action<int, float> handler = (other, value) =>
+                {
+                    if (other == humanPlayerId)
+                    {
+                        GetCard(id)?.ShowAffinity(value);
+                    }
+                };
+                book.For(id).Changed += handler;
+                _affinityHandlers[id] = handler;
+                GetCard(id)?.ShowAffinity(AffinityWithHuman(id));
+            }
+        }
 
         /// <summary>The card of a bot, or null if it has none yet.</summary>
         public PlayerInfoCard GetCard(int playerId) =>
@@ -75,10 +106,32 @@ namespace Chatan.UI
             card.name = $"PlayerInfoCard_P{playerId}";
             card.Bind(playerId);
             card.Clicked += OnCardClicked;
-            card.ShowAffinity(0f);
+            card.ShowAffinity(AffinityWithHuman(playerId));
             _cards[playerId] = card;
             return card;
         }
+
+        private float AffinityWithHuman(int botId) => _relationships?.For(botId)?.Get(humanPlayerId) ?? 0f;
+
+        private void UnbindRelationships()
+        {
+            if (_relationships != null)
+            {
+                foreach (KeyValuePair<int, Action<int, float>> pair in _affinityHandlers)
+                {
+                    RelationshipMemory memory = _relationships.For(pair.Key);
+                    if (memory != null)
+                    {
+                        memory.Changed -= pair.Value;
+                    }
+                }
+            }
+
+            _affinityHandlers.Clear();
+            _relationships = null;
+        }
+
+        private void OnDestroy() => UnbindRelationships();
 
         private void OnCardClicked(int playerId) => BotCardClicked?.Invoke(playerId);
 

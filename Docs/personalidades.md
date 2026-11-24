@@ -19,9 +19,9 @@ partida.
 
 | Campo | Lo usa | Efecto |
 |---|---|---|
-| `aggression` | ActionPlanner, RobberStrategy | Más alto → ladrón al líder, cortar carreteras |
-| `greed` | TradeEvaluator | Exige `valorRecibido ≥ valorDado × (1 + greed)` |
-| `cooperation` | TradeEvaluator | Baja el umbral de aceptación y sube la prob. de contraofertar |
+| `aggression` | ActionPlanner, RobberStrategy, TradeEvaluator | Más alto → ladrón al líder, cortar carreteras, no comerciar con quien va ganando |
+| `greed` | TradeEvaluator | Sube lo que exige: `coste × (1 + 0.6·greed)` |
+| `cooperation` | TradeEvaluator | Baja lo que exige (`× (1 − 0.4·coop)`) y amplía el margen para contraofertar |
 | `grudge` | RelationshipMemory, TradeEvaluator | Cuánto pesa la afinidad pasada |
 | `bluffing` | ResponseGenerator | Se le permite mentir sobre lo que tiene |
 | `riskTolerance` | ActionPlanner | Aguantar cartas, apuestas |
@@ -203,6 +203,47 @@ de cada una.
 - **Ejemplo:**
   - *Jugador:* ¿Tienes ladrillo?
   - *Embaucador:* ¿Ladrillo? Tengo una montaña. O ninguno, quién sabe. ¿Qué me ofreces?
+
+---
+
+## Cómo negocian
+
+`TradeEvaluator` decide si un bot **acepta**, **contraoferta** o **rechaza** una oferta. Lo
+que el bot recibe y lo que entrega se valoran con `IResourceValuator` (de momento
+`SimpleResourceValuator`) × la preferencia de la personalidad por ese recurso.
+
+```
+exigido      = coste · (1 + 0.6·greed) · (1 − 0.4·cooperation)
+bonusAmistad = coste · afinidad · (0.15 + 0.35·grudge)
+castigoLíder = coste · 0.8·aggression      si quien propone va primero con ≥ 7 PV
+ruido        = coste · randomness · N(0, 0.15)
+margen       = ganancia + bonusAmistad − castigoLíder + ruido − exigido
+```
+
+- `margen ≥ 0` → acepta.
+- `margen ≥ −coste · (0.3 + 0.4·cooperation)` y quedan rondas → contraoferta.
+- Si no, rechaza. Antes de la fórmula rechaza sin más si la oferta no tiene sentido, si
+  alguno no tiene las cartas o si la afinidad con quien propone es ≤ −0.8.
+
+Los coeficientes de la propuesta inicial (0.8·greed, 0.25·cooperation, 0.4·aggression)
+hacían que casi nadie aceptara un trato justo, ni siquiera la Mercader. Con los de arriba
+cada personalidad se nota:
+
+| Personalidad | justa 1×1 | 2×1 a favor | 1×2 en contra | regalo 3×1 | justa, si vas ganando |
+|---|---|---|---|---|---|
+| La Conquistadora | contraoferta | acepta | rechaza | acepta | **rechaza** |
+| El Acaparador | contraoferta | acepta | rechaza | acepta | rechaza |
+| La Diplomática | **acepta** | acepta | contraoferta | acepta | acepta |
+| El Caminante | acepta | acepta | contraoferta | acepta | contraoferta |
+| La Ingeniera | contraoferta | acepta | rechaza | acepta | contraoferta |
+| El Estratega | contraoferta | acepta | rechaza | acepta | rechaza |
+| La Mercader | **acepta** | acepta | contraoferta | acepta | contraoferta |
+| El Rencoroso | contraoferta | acepta | rechaza | acepta | contraoferta |
+| El Prudente | contraoferta | acepta | rechaza | acepta | contraoferta |
+| El Embaucador | depende (ruido) | acepta | contraoferta | acepta | contraoferta |
+
+Con madera por ladrillo, el bot con 2 de cada y la semilla 0. La tabla sale en la consola
+al pasar `TradePersonalityTableTests`; si cambias los coeficientes, cópiala aquí otra vez.
 
 ---
 
